@@ -9,6 +9,8 @@ jobs:
 
     container:
       image: elixir:1.9.1-slim
+      env:
+        MIX_ENV: test
 
     services:
       postgres:

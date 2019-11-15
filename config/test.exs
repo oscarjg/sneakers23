@@ -10,9 +10,9 @@ use Mix.Config
 
 # Configure your database
 config :sneakers_23, Sneakers23.Repo,
-  username: System.get_env("DB_USERNAME", "postgres"),
-  password: System.get_env("DB_PASSWORD", "postgres"),
-  database: System.get_env("DB_NAME", "sneakers_23_test"),
+  username: "postgres",
+  password: "postgres",
+  database: "sneakers_23_test",
   hostname: System.get_env("DB_HOST", "localhost"),
   pool: Ecto.Adapters.SQL.Sandbox
 

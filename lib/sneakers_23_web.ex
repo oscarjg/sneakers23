@@ -68,6 +68,8 @@ defmodule Sneakers23Web do
     end
   end
 
+  defdelegate notify_product_released(product), to: Sneakers23Web.ProductChannel
+
   @doc """
   When used, dispatch to the appropriate controller/view/etc.
   """

@@ -39,13 +39,19 @@ defmodule Sneakers23.Inventory do
   end
 
   def item_sold!(id), do: item_sold!(id, [])
-
   def item_sold!(item_id, opts) do
     pid = Keyword.get(opts, :pid, __MODULE__)
 
     avail = Store.fetch_availability_for_item(item_id)
-    {:ok, _old_inv, _inv} = Server.set_item_availability(pid, avail)
+    {:ok, old_inventory, inventory} = Server.set_item_availability(pid, avail)
 
+    {:ok, old_item}     = CompleteProduct.get_item_by_id(old_inventory, item_id)
+    {:ok, current_item} = CompleteProduct.get_item_by_id(inventory, item_id)
+
+    Sneakers23Web.notify_item_stock_change(
+      previous_item: old_item,
+      current_item: current_item
+    )
     :ok
   end
 end

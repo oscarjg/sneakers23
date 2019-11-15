@@ -9,7 +9,7 @@
 defmodule Sneakers23Web.Endpoint do
   use Phoenix.Endpoint, otp_app: :sneakers_23
 
-  socket "/socket", Sneakers23Web.ProductSocket,
+  socket "/product_socket", Sneakers23Web.ProductSocket,
     websocket: true,
     longpoll: false
 

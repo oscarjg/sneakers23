@@ -20,13 +20,13 @@ defmodule Sneakers23.Inventory.CompleteProduct do
   end
 
   def get_product_by_id(inventory, product_id) do
-    with {:ok, product} <- Map.fetch(inventory.products, product_id),
-         product_items <-
-           Inventory.get_items_for_product(inventory, product),
-         items <- enrich_product_items(product_items, inventory),
-         itemized_product <- Map.put(product, :items, items) do
-      {:ok, itemized_product}
-    end
+    with {:ok, product}   <- Map.fetch(inventory.products, product_id),
+         product_items    <- Inventory.get_items_for_product(inventory, product),
+         items            <- enrich_product_items(product_items, inventory),
+         itemized_product <- Map.put(product, :items, items)
+      do
+        {:ok, itemized_product}
+      end
   end
 
   defp enrich_product_items(items, inventory) do

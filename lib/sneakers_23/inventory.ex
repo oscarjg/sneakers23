@@ -1,13 +1,14 @@
-#---
+# ---
 # Excerpted from "Real-Time Phoenix",
 # published by The Pragmatic Bookshelf.
 # Copyrights apply to this code. It may not be used to create training material,
 # courses, books, articles, and the like. Contact us if you are in doubt.
 # We make no guarantees that this code is fit for any purpose.
 # Visit http://www.pragmaticprogrammer.com/titles/sbsockets for more book information.
-#---
+# ---
 defmodule Sneakers23.Inventory do
   alias __MODULE__.{CompleteProduct, DatabaseLoader, Server, Store}
+  alias Sneakers23.Replication
 
   def child_spec(opts) do
     loader = Keyword.get(opts, :loader, DatabaseLoader)
@@ -26,32 +27,46 @@ defmodule Sneakers23.Inventory do
     {:ok, complete_products}
   end
 
+  @spec mark_product_released!(any) :: :ok
   def mark_product_released!(id), do: mark_product_released!(id, [])
+  @spec mark_product_released!(any, keyword) :: :ok
   def mark_product_released!(product_id, opts) do
     pid = Keyword.get(opts, :pid, __MODULE__)
+    being_replicated = Keyword.get(opts, :being_replicated?, false)
 
-    %{id: id}        = Store.mark_product_released!(product_id)
+    %{id: id} = Store.mark_product_released!(product_id)
     {:ok, inventory} = Server.mark_product_released!(pid, id)
-    {:ok, product}   = CompleteProduct.get_product_by_id(inventory, id)
 
-    Sneakers23Web.notify_product_released(product)
+    unless being_replicated do
+      Replication.mark_product_released!(product_id)
+      {:ok, product} = CompleteProduct.get_product_by_id(inventory, id)
+      Sneakers23Web.notify_product_released(product)
+    end
+
     :ok
   end
 
   def item_sold!(id), do: item_sold!(id, [])
+
   def item_sold!(item_id, opts) do
     pid = Keyword.get(opts, :pid, __MODULE__)
+    being_replicated = Keyword.get(opts, :being_replicated?, false)
 
     avail = Store.fetch_availability_for_item(item_id)
     {:ok, old_inventory, inventory} = Server.set_item_availability(pid, avail)
 
-    {:ok, old_item}     = CompleteProduct.get_item_by_id(old_inventory, item_id)
-    {:ok, current_item} = CompleteProduct.get_item_by_id(inventory, item_id)
+    unless being_replicated do
+      Replication.item_sold!(item_id)
 
-    Sneakers23Web.notify_item_stock_change(
-      previous_item: old_item,
-      current_item: current_item
-    )
+      {:ok, old_item} = CompleteProduct.get_item_by_id(old_inventory, item_id)
+      {:ok, current_item} = CompleteProduct.get_item_by_id(inventory, item_id)
+
+      Sneakers23Web.notify_item_stock_change(
+        previous_item: old_item,
+        current_item: current_item
+      )
+    end
+
     :ok
   end
 end

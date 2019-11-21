@@ -9,6 +9,7 @@
 import css from "../css/app.css"
 import { productSocket } from "./socket"
 import dom from "./dom"
+import Cart from "./cart"
 
 const productsIds = dom.getProductIds()
 
@@ -17,6 +18,14 @@ if (productsIds.length > 0) {
     productsIds.forEach((id) => { setupProductChannel(productSocket, id) })
 }
 
+const cartChannel = Cart.setupCartChannel(
+    productSocket,
+    window.cartId,
+    {
+        onCartChange: (cart) => {}
+    }
+)
+
 function setupProductChannel(socket, productId) {
     const channel = socket.channel(`product:${productId}`)
     channel.join()
@@ -24,7 +33,7 @@ function setupProductChannel(socket, productId) {
             console.log("channel join failed")
         })
 
-    channel.on("released", ({size_html}) => {
+    channel.on("released", ({ size_html }) => {
         dom.replaceProductComingSoon(productId, size_html)
     })
 

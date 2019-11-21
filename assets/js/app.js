@@ -22,9 +22,20 @@ const cartChannel = Cart.setupCartChannel(
     productSocket,
     window.cartId,
     {
-        onCartChange: (cart) => {}
+        onCartChange: (cart) => {
+            console.log("CART RENDERED", cart)
+            dom.renderCartHtml(cart)
+        }
     }
 )
+
+dom.onItemClick((itemId) => {
+    Cart.addCartItem(cartChannel, itemId)
+})
+
+dom.onRemoveItemClick((itemId) => {
+    Cart.removeCartItem(cartChannel, itemId)
+})
 
 function setupProductChannel(socket, productId) {
     const channel = socket.channel(`product:${productId}`)

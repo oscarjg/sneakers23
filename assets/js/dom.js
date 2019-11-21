@@ -1,13 +1,14 @@
+import { getCartHtml } from "./cartRenderer"
+
 const dom = {}
 
-function getProductIds() {
+dom.getProductIds = () => {
     const products = document.querySelectorAll(".product-listing")
 
     return Array.from(products).map((el) => {return el.dataset.productId})
 }
-dom.getProductIds = getProductIds
 
-function replaceProductComingSoon(productId, sizeHtml) {
+dom.replaceProductComingSoon = (productId, sizeHtml) => {
     const name = `.product-soon-${productId}`
     const comingSoonElement = document.querySelectorAll(name)
 
@@ -19,9 +20,8 @@ function replaceProductComingSoon(productId, sizeHtml) {
         el.replaceWith(fragment)
     })
 }
-dom.replaceProductComingSoon = replaceProductComingSoon
 
-function updateItemLevel(itemId, level) {
+dom.updateItemLevel = (itemId, level) => {
   Array.from(document.querySelectorAll('.size-container__entry')).
     filter((el) => el.value == itemId).
     forEach((el) => {
@@ -31,7 +31,35 @@ function updateItemLevel(itemId, level) {
     })
 }
 
-dom.updateItemLevel = updateItemLevel
+dom.renderCartHtml = (cart) => {
+  const cartContainer = document.getElementById("cart-container")
+  cartContainer.innerHTML = getCartHtml(cart)
+}
+
+dom.onItemClick = (fn) => {
+  document.addEventListener("click", (event) => {
+      const targetEvent = event.target
+      
+      if (!targetEvent.matches(".size-container__entry")) { return }
+
+      event.preventDefault()
+
+      fn(targetEvent.value)
+  })
+}
+
+dom.onRemoveItemClick = (fn) => {
+  document.addEventListener("click", (event) => {
+      const targetEvent = event.target
+      
+      if (!targetEvent.matches(".cart-item__remove")) { return }
+
+      event.preventDefault()
+
+      fn(targetEvent.dataset.itemId)
+  })
+}
+
 
 function removeStockLevelClasses(el) {
   Array.from(el.classList).

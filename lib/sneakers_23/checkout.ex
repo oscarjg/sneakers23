@@ -7,7 +7,7 @@ defmodule Sneakers23.Checkout do
   defdelegate remove_item_from_cart(cart, item), to: ShoppingCart, as: :remove_item
 
   def restore_cart(nil), do: ShoppingCart.new()
-  def restore_cart(serialized, opts) do
+  def restore_cart(serialized, opts \\ []) do
     case ShoppingCart.deserialize(serialized, opts) do
       {:ok, cart} -> cart
       {:error, _} -> restore_cart(nil)

@@ -7,6 +7,8 @@ defmodule Sneakers23.Checkout.ShoppingCart do
 
   def new(), do: %__MODULE__{}
 
+  @spec add_item(any, any) ::
+          {:error, :duplicated | :invalid_params} | {:ok, %{items: nonempty_maybe_improper_list}}
   def add_item(cart = %{items: items} , id) when is_integer(id) do
     if (id in items) do
       {:error, :duplicated}

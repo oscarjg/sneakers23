@@ -131,7 +131,12 @@ defmodule Sneakers23Mock.Seeds do
   defp mock_availability(items),
     do:
       Enum.map(items, fn %{id: item_id} ->
-        available = if :rand.uniform() < 0.1, do: 0, else: :rand.uniform(1000) + 200
-        %{item_id: item_id, available_count: available}
+        case item_id do
+          1 ->
+            %{item_id: item_id, available_count: 1}
+          _ ->
+            available = if :rand.uniform() < 0.1, do: 0, else: :rand.uniform(1000) + 200
+            %{item_id: item_id, available_count: available}
+        end
       end)
 end

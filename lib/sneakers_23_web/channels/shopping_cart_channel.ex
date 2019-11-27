@@ -4,11 +4,17 @@ defmodule Sneakers23Web.ShoppingCartChannel do
 
   alias Sneakers23.Checkout
 
-  def join("cart:" <> _cart_id, params, socket) do
+  def join("cart:" <> cart_id, params, socket) do
     cart = get_cart(params)
     socket = assign(socket, :cart, cart)
     send(self(), :send_cart)
     enqueue_cart_subscriptions(cart)
+
+    socket = socket
+      |> assign(:cart_id, cart_id)
+      |> assign(:page, Map.get(params, "page", nil))
+
+    send(self(), :after_join)
 
     {:ok, socket}
   end
@@ -37,9 +43,23 @@ defmodule Sneakers23Web.ShoppingCartChannel do
     end
   end
 
+  def handle_info(:after_join, socket = %{assigns: %{cart: cart, cart_id: id, page: page}}) do
+    Sneakers23.CartTracker.track_cart(socket, %{
+      cart: cart,
+      id: id,
+      page: page
+    })
+
+    {:noreply, socket}
+  end
   @spec handle_info(:send_cart, Phoenix.Socket.t()) :: {:noreply, Phoenix.Socket.t()}
   def handle_info(:send_cart, socket = %{assigns: %{cart: cart}}) do
     push(socket, "cart", cart_to_map(cart))
+    {:noreply, socket}
+  end
+
+  def handle_info(:update_tracked_cart, socket = %{assigns: %{cart: cart, cart_id: id}}) do
+    Sneakers23.CartTracker.update_cart(socket, %{cart: cart, id: id})
     {:noreply, socket}
   end
 
@@ -61,6 +81,7 @@ defmodule Sneakers23Web.ShoppingCartChannel do
   intercept ["cart_updated"]
   @spec handle_out(<<_::96>>, map, Phoenix.Socket.t()) :: {:noreply, Phoenix.Socket.t()}
   def handle_out("cart_updated", params, socket) do
+    send(self(), :update_tracked_cart)
     modify_subscriptions(params)
     cart = get_cart(params)
     socket = assign(socket, :cart, cart)
@@ -74,8 +95,8 @@ defmodule Sneakers23Web.ShoppingCartChannel do
   end
 
   defp broadcast_cart(cart, socket, opts) do
+    send(self(), :update_tracked_cart)
     {:ok, serialized} = Checkout.export_cart(cart)
-
     broadcast_from(socket, "cart_updated", %{
       "serialized" => serialized,
       "added" => Keyword.get(opts, :added, []),

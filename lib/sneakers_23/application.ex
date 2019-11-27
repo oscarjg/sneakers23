@@ -15,6 +15,7 @@ defmodule Sneakers23.Application do
     children = [
       Sneakers23.Repo,
       Sneakers23Web.Endpoint,
+      {Sneakers23.CartTracker, [pool_size: System.schedulers_online()]},
       Sneakers23.Inventory,
       Sneakers23.Replication
     ]

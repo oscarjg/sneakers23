@@ -1,27 +1,29 @@
-import { getCartHtml } from "./cartRenderer"
+import { getCartHtml } from './cartRenderer'
 
 const dom = {}
 
-dom.getProductIds = () => {
-    const products = document.querySelectorAll(".product-listing")
-
-    return Array.from(products).map((el) => {return el.dataset.productId})
+function getProductIds() {
+  const products = document.querySelectorAll('.product-listing')
+  return Array.from(products).map((el) => el.dataset.productId)
 }
 
-dom.replaceProductComingSoon = (productId, sizeHtml) => {
-    const name = `.product-soon-${productId}`
-    const comingSoonElement = document.querySelectorAll(name)
+dom.getProductIds = getProductIds
 
-    comingSoonElement.forEach((el) => {
-        const fragment = document
-            .createRange()
-            .createContextualFragment(sizeHtml)
+export default dom
 
-        el.replaceWith(fragment)
-    })
+function replaceProductComingSoon(productId, sizeHtml) {
+  const name = `.product-soon-${productId}`
+  const productSoonEls = document.querySelectorAll(name)
+
+  productSoonEls.forEach(el => {
+    const fragment = document.createRange().createContextualFragment(sizeHtml)
+    el.replaceWith(fragment)
+  })
 }
 
-dom.updateItemLevel = (itemId, level) => {
+dom.replaceProductComingSoon = replaceProductComingSoon
+
+function updateItemLevel(itemId, level) {
   Array.from(document.querySelectorAll('.size-container__entry')).
     filter((el) => el.value == itemId).
     forEach((el) => {
@@ -31,35 +33,7 @@ dom.updateItemLevel = (itemId, level) => {
     })
 }
 
-dom.renderCartHtml = (cart) => {
-  const cartContainer = document.getElementById("cart-container")
-  cartContainer.innerHTML = getCartHtml(cart)
-}
-
-dom.onItemClick = (fn) => {
-  document.addEventListener("click", (event) => {
-      const targetEvent = event.target
-      
-      if (!targetEvent.matches(".size-container__entry")) { return }
-
-      event.preventDefault()
-
-      fn(targetEvent.value)
-  })
-}
-
-dom.onRemoveItemClick = (fn) => {
-  document.addEventListener("click", (event) => {
-      const targetEvent = event.target
-      
-      if (!targetEvent.matches(".cart-item__remove")) { return }
-
-      event.preventDefault()
-
-      fn(targetEvent.dataset.itemId)
-  })
-}
-
+dom.updateItemLevel = updateItemLevel
 
 function removeStockLevelClasses(el) {
   Array.from(el.classList).
@@ -67,4 +41,24 @@ function removeStockLevelClasses(el) {
     forEach((name) => el.classList.remove(name))
 }
 
-export default dom
+dom.renderCartHtml = (cart) => {
+  const cartContainer = document.getElementById("cart-container")
+  cartContainer.innerHTML = getCartHtml(cart)
+}
+
+dom.onItemClick = (fn) => {
+  document.addEventListener('click', (event) => {
+    if (!event.target.matches('.size-container__entry')) { return }
+    event.preventDefault()
+
+    fn(event.target.value)
+  })
+}
+
+dom.onRemoveItemClick = (fn) => {
+  document.addEventListener('click', (event) => {
+    if (!event.target.matches('.cart-item__remove')) { return }
+    event.preventDefault()
+    fn(event.target.dataset.itemId)
+  })
+}

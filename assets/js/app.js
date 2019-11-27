@@ -11,6 +11,8 @@ import { productSocket } from "./socket"
 import dom from "./dom"
 import Cart from "./cart"
 
+import { Presence } from 'phoenix'
+
 const productsIds = dom.getProductIds()
 
 if (productsIds.length > 0) {

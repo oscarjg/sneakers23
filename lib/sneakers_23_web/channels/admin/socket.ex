@@ -1,0 +1,64 @@
+#---
+# Excerpted from "Real-Time Phoenix",
+# published by The Pragmatic Bookshelf.
+# Copyrights apply to this code. It may not be used to create training material,
+# courses, books, articles, and the like. Contact us if you are in doubt.
+# We make no guarantees that this code is fit for any purpose.
+# Visit http://www.pragmaticprogrammer.com/titles/sbsockets for more book information.
+#---
+defmodule Sneakers23Web.Admin.Socket do
+  use Phoenix.Socket
+  require Logger
+
+  ## Channels
+  channel "admin:cart_tracker", Sneakers23Web.Admin.DashboardChannel
+
+  # Socket params are passed from the client and can
+  # be used to verify and authenticate a user. After
+  # verification, you can put default assigns into
+  # the socket that will be set for all channels, ie
+  #
+  #     {:ok, assign(socket, :user_id, verified_user_id)}
+  #
+  # To deny connection, return `:error`.
+  #
+  # See `Phoenix.Token` documentation for examples in
+  # performing token verification on connect.
+  def connect(%{"token" => token}, socket, _connect_info) do
+    case verify(token, socket) do
+      {:ok, _} ->
+        {:ok, socket}
+      {:error, err} ->
+        Logger.error("#{__MODULE__} connect error #{inspect(err)}")
+        :error
+    end
+  end
+
+  def connect(_, _) do
+    Logger.error("#{__MODULE__} connect error missing params")
+    :error
+  end
+
+  # Socket id's are topics that allow you to identify all sockets for a given user:
+  #
+  #     def id(socket), do: "user_socket:#{socket.assigns.user_id}"
+  #
+  # Would allow you to broadcast a "disconnect" event and terminate
+  # all active sockets and channels for a given user:
+  #
+  #     Sneakers23Web.Endpoint.broadcast("user_socket:#{user.id}", "disconnect", %{})
+  #
+  # Returning `nil` makes this socket anonymous.
+  def id(_socket), do: nil
+
+  @one_day 86400
+
+  defp verify(token, socket) do
+    Phoenix.Token.verify(
+      socket,
+      "admin socket",
+      token,
+      max_age: @one_day
+    )
+  end
+end
